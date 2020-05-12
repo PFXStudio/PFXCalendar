@@ -8,6 +8,9 @@
 
 import Foundation
 
+class CalendarEmptyCellViewModel: RxCellViewModel {
+}
+
 class CalendarCellViewModel: RxCellViewModel {
     var calendarModel: CalendarModel!
 }

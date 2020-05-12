@@ -51,46 +51,50 @@ class CalendarMonthCollectionViewModel: RxViewModel {
                 guard let self = self,
                     let startDate = dates.0.startOfWeek else { return }
                 
-//                let endDate = dates.1,
+                let endDate = dates.1
                 var sections = [RxSectionCollectionViewModel]()
-                var section = RxSectionCollectionViewModel()
-                var dateComponent = DateComponents(timeZone: TimeZone(abbreviation: "GMT"))
-                dateComponent.month = 6
-                let endDate = Calendar.current.date(byAdding: dateComponent, to: startDate)
                 let gregorian = NSCalendar(identifier: NSCalendar.Identifier.gregorian)
-                let daysDiff = gregorian!.components(NSCalendar.Unit.day, from: startDate, to: endDate!, options: NSCalendar.Options(rawValue: 0)).day! as Int
-                var calendarModels = [CalendarModel]()
-                var currentMonth = ""
+                let daysDiff = gregorian!.components(NSCalendar.Unit.day, from: startDate, to: endDate, options: NSCalendar.Options(rawValue: 0)).day! as Int
+                
+                guard var pivotDate = gregorian!.date(byAdding: NSCalendar.Unit.day, value: 0, to: startDate as Date, options: NSCalendar.Options(rawValue: 0)) else {
+                    return
+                }
+                
                 var items = [RxCellViewModel]()
+                let viewModel = CalendarSeperatorCellViewModel(reuseIdentifier: "CalendarSeperatorCell", identifier: "CalendarSeperatorCell" + String.random())
+                viewModel.yyyyMM = "\(pivotDate.yearKr)년 \(pivotDate.monthKr)월"
+                items.append(viewModel)
+
                 for index in 0..<daysDiff {
                     guard let date = gregorian!.date(byAdding: NSCalendar.Unit.day, value: index, to: startDate as Date, options: NSCalendar.Options(rawValue: 0)) else {
                         continue
                     }
                     
                     let model = CalendarModel(date: date)
-                    calendarModels.append(model)
-                    if currentMonth != date.monthKr {
-                        if items.count > 0 {
-                            section = RxSectionCollectionViewModel(header: "\(date.yearKr)년-\(currentMonth)월", items: items)
-                            sections.append(section)
+                    if pivotDate.monthKr != date.monthKr {
+                        for _ in pivotDate.weekdayIndex..<date.maxWeekdayIndex {
+                            items.append(CalendarEmptyCellViewModel(reuseIdentifier: "CalendarMonthEmptyCell", identifier: "CalendarMonthEmptyCell" + String.random()))
                         }
-
-                        items = [RxCellViewModel]()
-                        currentMonth = date.monthKr
-                        if date.weekdayIndex != date.maxWeekdayIndex {
-                            for _ in 0..<date.weekdayIndex {
-                                items.append(RxCellViewModel(reuseIdentifier: "CalendarMonthEmptyCell", identifier: "CalendarMonthEmptyCell" + String.random()))
-                            }
+                        
+                        let viewModel = CalendarSeperatorCellViewModel(reuseIdentifier: "CalendarSeperatorCell", identifier: "CalendarSeperatorCell" + String.random())
+                        viewModel.yyyyMM = "\(date.yearKr)년 \(date.monthKr)월"
+                        items.append(viewModel)
+                        for _ in 0..<date.weekdayIndex {
+                            items.append(CalendarEmptyCellViewModel(reuseIdentifier: "CalendarMonthEmptyCell", identifier: "CalendarMonthEmptyCell" + String.random()))
                         }
                     }
                     
                     let cellViewModel = CalendarCellViewModel(reuseIdentifier: "CalendarMonthCell", identifier: "CalendarMonthCell" + String.random())
                     cellViewModel.calendarModel = model
                     items.append(cellViewModel)
+                    pivotDate = date
                 }
 
                 var oldSections = self.sectionsSubject.value
                 oldSections.removeAll()
+                let section = RxSectionCollectionViewModel(header: "", items: items)
+                sections.append(section)
+
                 self.sectionsSubject.accept(sections)
             })
             .disposed(by: self.disposeBag)

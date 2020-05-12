@@ -15,6 +15,7 @@ class CalendarMonthCollectionViewController: UICollectionViewController {
     var viewModel: CalendarMonthCollectionViewModel!
     private var rxDataSource: RxCollectionViewSectionedAnimatedDataSource<RxSectionCollectionViewModel>?
     var disposeBag = DisposeBag()
+    var gap: CGFloat = 0
 
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     override func viewDidLoad() {
@@ -37,6 +38,7 @@ class CalendarMonthCollectionViewController: UICollectionViewController {
     
     func initializeNavigationBar() {
         self.title = "방문 예약"
+
         guard let navigationBar = self.navigationController?.navigationBar else { return }
         navigationBar.setValue(true, forKey: "hidesShadow")
         navigationBar.largeTitleTextAttributes = [.foregroundColor: UIColor.darkGray, .font: UIFont(name: "HelveticaNeue-Bold", size: 18)!]
@@ -56,18 +58,15 @@ class CalendarMonthCollectionViewController: UICollectionViewController {
     }
 
     func initializeFlowLayout() {
-        let numberOfColums: CGFloat = 7
-        let width = self.view.frame.size.width
-        let xInset: CGFloat = 0
-        let cellSpacing: CGFloat = 11
-        let size = CGSize(width: (width / numberOfColums) - (xInset + cellSpacing), height: (width / numberOfColums) - (xInset + cellSpacing))
-        flowLayout.minimumLineSpacing = 8
-        flowLayout.itemSize = size
     }
     
     func bindOutputs() {
         self.collectionView.delegate = nil
         self.collectionView.dataSource = nil
+        if let layout = self.collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.sectionHeadersPinToVisibleBounds = true
+        }
+
         self.rxDataSource = RxCollectionViewSectionedAnimatedDataSource<RxSectionCollectionViewModel>(configureCell: { dataSource, collectionView, indexPath, cellViewModel in
             self.collectionViewLayout.invalidateLayout()
             guard let viewModel = try? (dataSource.model(at: indexPath) as? RxCellViewModel) else { return UICollectionViewCell() }
@@ -79,20 +78,25 @@ class CalendarMonthCollectionViewController: UICollectionViewController {
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: viewModel.reuseIdentifier, for: indexPath) as? CalendarMonthEmptyCell {
                 return cell
             }
-            
+
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: viewModel.reuseIdentifier, for: indexPath) as? CalendarSeperatorCell {
+                cell.configure(viewModel: viewModel, indexPath: indexPath)
+                return cell
+            }
+
             return UICollectionViewCell()
             }, configureSupplementaryView: { (ds ,cv, kind, ip) in
                 if kind == UICollectionView.elementKindSectionHeader {
-                    guard let cell = cv.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: String(describing: CalendarMonthHeaderCell.self), for: ip) as? CalendarMonthHeaderCell else {
+                    guard let cell = cv.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: String(describing: CalendarWeekDaySymbolHeaderCell.self), for: ip) as? CalendarWeekDaySymbolHeaderCell else {
                         return UICollectionReusableView()
                     }
-                    let model = ds.sectionModels[ip.section]
-                    guard let year = model.header?.components(separatedBy: "-").first,
-                        let month = model.header?.components(separatedBy: "-").last else {
-                            return UICollectionReusableView()
-                    }
-                    
-                    cell.configure(dateText: "\(year) \(month)")
+
+                    let numberOfColums: CGFloat = 7
+                    #error("컬렉션 뷰 왼쪽 오른쪽 마진 32")
+                    #error("셀 간격 66")
+                    #error("월~일 라벨 크기 7개")
+                    let width = (self.collectionView.frame.width - 32 - 66 - (8.3 * 7)) / numberOfColums
+                    cell.initialize(constant: width)
                     return cell
                 }
                 
@@ -113,5 +117,29 @@ class CalendarMonthCollectionViewController: UICollectionViewController {
         self.collectionView.rx
             .setDelegate(self)
             .disposed(by: self.disposeBag)
+    }
+}
+
+extension CalendarMonthCollectionViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        
+        guard let items = self.rxDataSource?.sectionModels[indexPath.section].items else { return CGSize(width: 0, height: 0) }
+        let viewModel = items[indexPath.row]
+        if viewModel is CalendarSeperatorCellViewModel {
+            return CGSize(width: self.collectionView.frame.width, height: 44)
+        }
+        
+        if viewModel is CalendarCellViewModel || viewModel is CalendarEmptyCellViewModel {
+            let numberOfColums: CGFloat = 7
+            let width = self.collectionView.frame.width - 32
+            let xInset: CGFloat = 0
+            let cellSpacing: CGFloat = 11
+            let size = CGSize(width: (width / numberOfColums) - (xInset + cellSpacing), height: (width / numberOfColums) - (xInset + cellSpacing))
+            return size
+        }
+        
+        return CGSize(width: 0, height: 0)
     }
 }
