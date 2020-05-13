@@ -91,12 +91,7 @@ class CalendarMonthCollectionViewController: UICollectionViewController {
                         return UICollectionReusableView()
                     }
 
-                    let numberOfColums: CGFloat = 7
-                    #error("컬렉션 뷰 왼쪽 오른쪽 마진 32")
-                    #error("셀 간격 66")
-                    #error("월~일 라벨 크기 7개")
-                    let width = (self.collectionView.frame.width - 32 - 66 - (8.3 * 7)) / numberOfColums
-                    cell.initialize(constant: width)
+                    cell.initialize(constant: self.gap)
                     return cell
                 }
                 
@@ -130,13 +125,26 @@ extension CalendarMonthCollectionViewController: UICollectionViewDelegateFlowLay
         if viewModel is CalendarSeperatorCellViewModel {
             return CGSize(width: self.collectionView.frame.width, height: 44)
         }
+
+//        #error("컬렉션 뷰 왼쪽 오른쪽 마진 32")
+//        #error("셀 간격 11 * 6 = 66")
+//        #error("월~일 라벨 크기 7개")
+//        let width = (self.collectionView.frame.width - 32 - 66 - (8.3 * 7)) / numberOfColums
+        let numberOfColums: CGFloat = 7
+        guard let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {
+            return CGSize(width: 0, height: 0)
+        }
         
+        var margin = layout.sectionInset.left + layout.sectionInset.right
+        margin = margin + layout.minimumInteritemSpacing * (numberOfColums - 1)
+        margin = margin + 8.3 * numberOfColums
+        let gap = (self.collectionView.frame.width - margin) / numberOfColums
+        self.gap = gap
+
         if viewModel is CalendarCellViewModel || viewModel is CalendarEmptyCellViewModel {
-            let numberOfColums: CGFloat = 7
-            let width = self.collectionView.frame.width - 32
-            let xInset: CGFloat = 0
-            let cellSpacing: CGFloat = 11
-            let size = CGSize(width: (width / numberOfColums) - (xInset + cellSpacing), height: (width / numberOfColums) - (xInset + cellSpacing))
+            let width = self.collectionView.frame.width - (layout.sectionInset.left + layout.sectionInset.right)
+            let cellSpacing: CGFloat = layout.minimumInteritemSpacing
+            let size = CGSize(width: (width / numberOfColums) - cellSpacing, height: (width / numberOfColums) - cellSpacing)
             return size
         }
         

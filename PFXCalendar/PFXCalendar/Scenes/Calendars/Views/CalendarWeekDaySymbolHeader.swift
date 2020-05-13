@@ -11,7 +11,8 @@ import UIKit
 
 class CalendarWeekDaySymbolHeaderCell: UICollectionReusableView {
     @IBOutlet var marginConstraints: [NSLayoutConstraint]!
-
+    @IBOutlet weak var centerLabel: UILabel!
+    
     func initialize(constant: CGFloat) {
         for constraint in self.marginConstraints {
             constraint.constant = constant
