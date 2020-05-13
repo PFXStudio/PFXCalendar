@@ -1,5 +1,5 @@
 //
-//  CalendarCellViewModel.swift
+//  HorizontalCalendarCellViewModel.swift
 //  PFXCalendar
 //
 //  Created by jinwoo.park on 2020/05/11.
@@ -11,6 +11,6 @@ import Foundation
 class CalendarEmptyCellViewModel: RxCellViewModel {
 }
 
-class CalendarCellViewModel: RxCellViewModel {
+class HorizontalCalendarCellViewModel: RxCellViewModel {
     var calendarModel: CalendarModel!
 }

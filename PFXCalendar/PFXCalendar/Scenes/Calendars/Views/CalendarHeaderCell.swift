@@ -10,11 +10,9 @@ import Foundation
 import UIKit
 
 class CalendarHeaderCell: UICollectionReusableView {
-    @IBOutlet weak var yearLabel: UILabel!
-    @IBOutlet weak var monthLabel: UILabel!
+    @IBOutlet weak var dateLabel: UILabel!
     
-    func configure(year: String, month: String) {
-        self.yearLabel.text = year
-        self.monthLabel.text = month
+    func configure(dateText: String) {
+        self.dateLabel.text = dateText
     }
 }

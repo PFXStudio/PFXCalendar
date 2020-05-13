@@ -1,5 +1,5 @@
 //
-//  CalendarMonthEmptyCell.swift
+//  CalendarEmptyCell.swift
 //  PFXCalendar
 //
 //  Created by jinwoo.park on 2020/05/12.
@@ -9,5 +9,5 @@
 import Foundation
 import RxSwift
 
-class CalendarMonthEmptyCell: RxCollectionViewCell {
+class CalendarEmptyCell: RxCollectionViewCell {
 }
